@@ -1,0 +1,129 @@
+#include <iostream>
+#include <bitset>
+using namespace std;
+
+bool Add(bool b1, bool b2, bool& carry)
+{
+	bool sum = (b1 ^ b2) ^ carry;
+	carry = (b1 && b2) || (b1 && carry) || (b2 && carry);
+	return sum;
+}
+
+template <typename T>
+T bitAdd(T& x, T& y, int n)
+{
+	bool carry = false;
+	
+	T ans;
+	for (int i = 0; i < n; i++) {
+		ans[i] = Add(x[i], y[i], carry);
+	}
+	return ans;
+}
+
+template <class T>
+void arithmeticShiftRight(T& A, T& Q, bool& q, int n) {
+	q = Q[0];
+	bool tmp = A[0];
+	Q >>= 1;
+	A >>= 1;
+	Q[n - 1] = tmp;
+	A[n - 1] = A[n - 2];
+}
+	
+template <typename T>
+	void multiplicacion(T& A, bool& C, T& M, T& Q, int n) {
+	int nn = n;
+	do {
+		if (Q[0] == 1) {
+			A = bitAdd<T>(A, M, nn);
+			arithmeticShiftRight<T>(A, Q, C, nn);
+		}
+		else {
+			arithmeticShiftRight<T>(A, Q, C, nn);            
+		}
+	} while (--n > 0);
+}
+	
+int main() {
+	
+	float x,y;
+	bitset<32> rpta;
+	bitset<1> signo3;	
+	bitset<32> exponentes3;	
+	bitset<32> mantisa3;
+	bitset<32> bias = -127;
+	bitset<32> one = 1;
+	bitset<32> A = 0;
+	bool C = 0;
+	cout<<"Ingrese el primer numero a multiplicar:";cin>>x;
+	cout<<"Ingrese el segundo numero a multiplicar:";cin>>y;
+	
+	bitset<sizeof x * 8> a= bitset<sizeof x * 8>(*(long unsigned int*)(&x));
+	bitset<sizeof y * 8> b = bitset<sizeof y * 8>(*(long unsigned int*)(&y));
+	
+	cout <<x << " en binario:"<<endl<< a << endl;
+	cout <<y << " en binario:"<<endl<< b << endl;
+	
+	bitset <1> signo;
+	signo[0] = a[31];
+	bitset<32> exponentes;
+	for (int i = 0; i < 8; i++)
+		exponentes[i] = a[23 + i];
+	bitset<32> mantisa;
+	for (int i = 0; i < 23; i++)
+		mantisa[i] = a[i];
+	mantisa[23] = 1;
+	
+	bitset <1> signo2;
+	signo2[0] = b[31];
+	bitset<32> exponentes2;
+	for (int i = 0; i < 8; i++)
+		exponentes2[i] = b[23 + i];
+	bitset<32> mantisa2;
+	for (int i = 0; i < 23; i++) 
+		mantisa2[i] = b[i];
+	mantisa2[23] = 1;
+	
+	if (a == 0 || b == 0)
+		cout<<"Un numero de los ingresados es 0";
+		return 0;
+	else {
+		signo3[0] = signo[0] ^ signo2[0];
+		exponentes3 = bitAdd<bitset<32> >(exponentes, exponentes2, 32);  
+		exponentes3 = bitAdd<bitset<32> >(exponentes3, bias, 32);    
+		if (exponentes3[31]){
+			cout << "Underflow de exponentes"<<endl; 
+			return 0;}
+		else if (exponentes3[8]){
+			cout << "Overflow de exponentes"<<endl;
+			return 0;
+		}
+		else {
+			multiplicacion<bitset<32> >(A, C, mantisa, mantisa2, 32);    
+			bitset<48> aux;
+			for (int i = 0; i < 32; i++) {      
+				aux[i] = mantisa2[i];
+			}
+			for (int i = 0; i < 16; i++) {
+				aux[i + 32] = A[i];
+			}
+			int cont = 0;
+			while (cont < 48) {
+				if (aux[47 - count]) break;
+				cont++;
+			}
+			if (!cont) exponentes3 = bitAdd<bitset<32> >(exponentes3, one, 32);   
+			for (int i = 0; i < 23; i++)
+				mantisa3[22 - i] = aux[46 - i - count];
+			rpta[31] = signo3[0];    
+			for (int i = 0; i < 8; i++)
+				rpta[30 - i] = exponentes3[7 - i];
+			for (int i = 0; i < 23; i++)
+				rpta[i] = mantisa3[i];
+		}
+	}
+	cout << "Multiplicacion en binario:\n" << rpta << endl; 
+	
+	return 0;
+}  
