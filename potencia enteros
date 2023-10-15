@@ -31,8 +31,6 @@ main:
  li $a0, 2
  li $a1, 3
  jal pot
- # Aquí, $v0 tiene 2^3 = 8
- # Terminar el programa
  li $v0, 10
  syscall
 .data
