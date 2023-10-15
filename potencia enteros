@@ -1,0 +1,39 @@
+.text
+.globl pot
+pot:
+ addiu $sp, $sp, -8
+ sw $ra, 4($sp)
+ sw $fp, 0($sp)
+ move $fp, $sp
+ li $v0, 1
+ bltz $a1, caso_especial
+ loop:
+ beq $a1, $zero, end_loop
+ mul $v0, $v0, $a0
+ beqz $v0, overflow
+ addiu $a1, $a1, -1
+ j loop
+ end_loop:
+ move $sp, $fp
+ lw $ra, 4($sp)
+ lw $fp, 0($sp)
+ addiu $sp, $sp, 8
+ jr $ra
+ caso_especial:
+ li $v0, 1
+ j end_loop
+ overflow:
+ la $a0, mensaje_mal
+ li $v0, 4
+ syscall
+ j end_loop
+main:
+ li $a0, 2
+ li $a1, 3
+ jal pot
+ # Aquí, $v0 tiene 2^3 = 8
+ # Terminar el programa
+ li $v0, 10
+ syscall
+.data
+mensaje_mal: .asciiz "Hay overflow.\n"
